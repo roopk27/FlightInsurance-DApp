@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flight Insurance DApp</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f8fafc; color: #1e293b; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+header { background: #1e293b; color: white; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-text { font-size: 18px; font-weight: 700; }
+.logo-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.conn-badge { font-size: 12px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #94a3b8; font-family: monospace; }
+.conn-badge.ok { background: #064e3b; color: #34d399; }
+.setup { background: #1e293b; border-top: 1px solid #334155; padding: 10px 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.setup label { color: #94a3b8; font-size: 12px; white-space: nowrap; }
+.setup input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-family: monospace; font-size: 12px; padding: 6px 10px; outline: none; }
+.setup input:focus { border-color: #3b82f6; }
+#rpc-in { width: 180px; }
+#addr-in { flex: 1; min-width: 260px; }
+.btn-sm { background: #3b82f6; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-weight: 600; }
+#notice { background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 28px; font-size: 13px; color: #92400e; }
+.tabs { display: flex; background: white; border-bottom: 2px solid #e2e8f0; padding: 0 28px; }
+.tab { padding: 14px 20px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #64748b; font-weight: 500; transition: all 0.15s; }
+.tab.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
+main { padding: 24px 28px; max-width: 980px; margin: 0 auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.card h3 { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+.card p { font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.5; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; }
+.field input { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #1e293b; font-size: 13px; padding: 9px 12px; outline: none; transition: border-color 0.15s; }
+.field input:focus { border-color: #3b82f6; background: white; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; font-weight: 600; transition: all 0.15s; }
+.btn-blue { background: #3b82f6; color: white; }
+.btn-green { background: #10b981; color: white; }
+.btn-amber { background: #f59e0b; color: white; }
+.btn-ghost { background: white; color: #3b82f6; border: 1px solid #3b82f6; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.policy-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+.prow { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+.prow:last-child { border-bottom: none; }
+.pkey { color: #64748b; }
+.pval { color: #1e293b; font-family: monospace; font-size: 12px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.bp { background: #dbeafe; color: #1d4ed8; }
+.bc { background: #d1fae5; color: #065f46; }
+.terms-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; font-size: 13px; }
+.trow { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #bbf7d0; }
+.trow:last-child { border-bottom: none; }
+.tval { color: #059669; font-weight: 700; }
+.log { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 12px 14px; font-family: monospace; font-size: 12px; line-height: 1.7; max-height: 220px; overflow-y: auto; min-height: 60px; color: #94a3b8; }
+.lok { color: #34d399; }
+.lerr { color: #f87171; }
+.lhi { color: #e2e8f0; font-weight: 600; }
+.lwarn { color: #fbbf24; }
+.tbl-wrap { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { color: #64748b; text-align: left; padding: 8px 10px; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; }
+td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; }
+.bal-big { font-size: 26px; font-weight: 700; color: #059669; font-family: monospace; margin: 6px 0; }
+.bal-sub { font-size: 12px; color: #64748b; font-family: monospace; }
+.pipe { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+.ps { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; }
+.psn { width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.atag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.ar { background: #fee2e2; color: #dc2626; }
+.ag { background: #d1fae5; color: #065f46; }
+.am { background: #f1f5f9; color: #64748b; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: sp 0.7s linear infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <div class="logo-text">Flight Insurance Application</div>
+      <div class="logo-sub">Powered by Ethereum Blockchain</div>
+    </div>
+  </div>
+  <div class="conn-badge" id="cbadge">Not connected</div>
+</header>
+
+<div class="setup">
+  <label>RPC URL:</label>
+  <input id="rpc-in" value="http://127.0.0.1:8545"/>
+  <label>Contract Address:</label>
+  <input id="addr-in" placeholder="0x... paste deployed contract address here"/>
+  <button class="btn-sm" onclick="connectApp()">Connect to Remix VM</button>
+</div>
+
+
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'passenger')">Passenger</div>
+  <div class="tab" onclick="switchTab(this,'provider')"> Insurance Provider </div>
+  <div class="tab" onclick="switchTab(this,'phase3')"> Phase III - Live API</div>
+</div>
+
+<main>
+
+<!-- PASSENGER -->
+<div class="panel active" id="panel-passenger">
+  <div class="card">
+    <h3>View Available Policy</h3>
+    <p>Check the insurance policy terms before purchasing.</p>
+    <button class="btn btn-ghost" onclick="viewTerms()">View Policy Terms</button>
+    <div id="terms-out" style="margin-top:12px;display:none;">
+      <div class="terms-box">
+        <div class="trow"><span>Premium</span><span class="tval">0.01 ETH</span></div>
+        <div class="trow"><span>Indemnity</span><span class="tval">0.02 ETH</span></div>
+        <div class="trow"><span>Coverage</span><span class="tval">Hail and Flood</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Purchase Insurance Policy</h3>
+    <p>Fill in your flight details. Exactly 0.01 ETH will be charged from your account.</p>
+    <div class="grid2">
+      <div class="field"><label>Passenger Name</label><input id="p-name" placeholder=""/></div>
+      <div class="field"><label>Flight Number</label><input id="p-flight" placeholder=""/></div>
+      <div class="field"><label>Flight Date</label><input id="p-date" type="date"/></div>
+      <div class="field"><label>Account Index (0=Provider, 1+=Passenger)</label><input id="p-acc" type="number" value="1" min="0" max="9"/></div>
+      <div class="field"><label>Departure City</label><input id="p-dep" placeholder=""/></div>
+      <div class="field"><label>Destination City</label><input id="p-dest" placeholder=""/></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-blue" onclick="purchasePolicy()">Purchase — Pay 0.01 ETH</button></div>
+    <div id="plog" class="log" style="margin-top:14px;display:none;"></div>
+  </div>
+  <div class="card">
+    <h3>View My Policy &amp; Balance</h3>
+    <p>Check your policy status and ETH balance. Uses your account address automatically.</p>
+    <div class="field" style="max-width:200px;"><label>Account Index</label><input id="vp-acc" type="number" value="1" min="0" max="9"/></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="viewMyPolicy()">View My Policy</button>
+      <button class="btn btn-ghost" onclick="viewMyBalance()">View My Balance</button>
+    </div>
+    <div id="my-policy" style="margin-top:12px;"></div>
+    <div id="my-balance" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- PROVIDER -->
+<div class="panel" id="panel-provider">
+  <div class="card">
+    <h3> All Purchased Policies</h3>
+    <p>Only the Insurance Provider (Account 0) can call this function.</p>
+    <button class="btn btn-ghost" onclick="loadAll()">Load All Policies</button>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Name</th><th>Address</th><th>Flight</th><th>Date</th><th>Departure</th><th>Destination</th><th>Status</th></tr></thead>
+      <tbody id="all-tb"><tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">Click Load All Policies</td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <h3> Pay Indemnity — Manual</h3>
+    <p>Manually send 0.02 ETH indemnity to a passenger. Only Account 0 (Provider) can do this.</p>
+    <div class="field"><label>Passenger Ethereum Address</label><input id="pay-addr" placeholder="0x..."/></div>
+    <div class="btn-row"><button class="btn btn-amber" onclick="payManual()">Pay 0.02 ETH Indemnity</button></div>
+    <div id="paylog" class="log" style="margin-top:14px;display:none;"></div>
+  </div>
+</div>
+
+<!-- PHASE III -->
+<div class="panel" id="panel-phase3">
+  <div class="card">
+    <h3> Phase III — Fully Automated Verification</h3>
+    <p>Reads all policies from blockchain, calls the live <strong>weather.gov REST API</strong> for each city, detects severe weather and auto-pays indemnity.</p>
+    <div class="pipe">
+      <div class="ps" id="ps1"><div class="psn" id="pn1">1</div><span>Read all policies from blockchain</span></div>
+      <div class="ps" id="ps2"><div class="psn" id="pn2">2</div><span>Get GPS coordinates for each departure city</span></div>
+      <div class="ps" id="ps3"><div class="psn" id="pn3">3</div><span>Call weather.gov /alerts/active?point=lat,lon</span></div>
+      <div class="ps" id="ps4"><div class="psn" id="pn4">4</div><span>Detect Severe or Extreme weather events</span></div>
+      <div class="ps" id="ps5"><div class="psn" id="pn5">5</div><span>Auto-call pay_indemnity() for affected passengers</span></div>
+      <div class="ps" id="ps6"><div class="psn" id="pn6">6</div><span>Report final policy statuses</span></div>
+    </div>
+    <button class="btn btn-green" id="run-btn" onclick="runPhase3()">▶ Run Automated Verification</button>
+  </div>
+  <div class="card" id="p3-res" style="display:none;">
+    <h3>Show Results</h3>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Passenger</th><th>City</th><th>Date</th><th>Weather Alert</th><th>Severity</th><th>Action</th></tr></thead>
+      <tbody id="p3-tb"></tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Live Console</h3>
+    <div id="p3log" class="log"><span style="color:#94a3b8;">// Ready — click Run Automated Verification to start</span></div>
+  </div>
+</div>
+</main>
+
+<script>
+var web3, contract, accounts;
+var PREMIUM='10000000000000000', INDEMNITY='20000000000000000';
+
+var ABI=[
+  {inputs:[],name:"view_available_policy",outputs:[{type:"string"}],stateMutability:"pure",type:"function"},
+  {inputs:[{name:"_name",type:"string"},{name:"_flightNumber",type:"string"},{name:"_flightDate",type:"string"},{name:"_departureCity",type:"string"},{name:"_destinationCity",type:"string"}],name:"purchase_policy",outputs:[],stateMutability:"payable",type:"function"},
+  {inputs:[],name:"view_purchased_policy",outputs:[{name:"passengerName",type:"string"},{name:"passengerAddress",type:"address"},{name:"flightNumber",type:"string"},{name:"flightDate",type:"string"},{name:"departureCity",type:"string"},{name:"destinationCity",type:"string"},{name:"status",type:"string"}],stateMutability:"view",type:"function"},
+  {inputs:[],name:"view_all_policies",outputs:[{name:"names",type:"string[]"},{name:"addresses",type:"address[]"},{name:"flightNumbers",type:"string[]"},{name:"flightDates",type:"string[]"},{name:"departureCities",type:"string[]"},{name:"destinationCities",type:"string[]"},{name:"statuses",type:"string[]"}],stateMutability:"view",type:"function"},
+  {inputs:[{name:"passenger",type:"address"}],name:"pay_indemnity",outputs:[{type:"bool"}],stateMutability:"payable",type:"function"},
+  {inputs:[],name:"view_balance",outputs:[{type:"uint256"}],stateMutability:"view",type:"function"},
+  {stateMutability:"payable",type:"receive"}
+];
+
+var CITIES={
+  "Denver":{lat:39.7392,lon:-104.9903},"Austin":{lat:30.2672,lon:-97.7431},
+  "Houston":{lat:29.7604,lon:-95.3698},"Boston":{lat:42.3601,lon:-71.0589},
+  "Phoenix":{lat:33.4484,lon:-112.0740},"Tampa":{lat:27.9506,lon:-82.4572},
+  "Miami":{lat:25.7617,lon:-80.1918},"Tucson":{lat:32.2226,lon:-110.9747},
+  "Chicago":{lat:41.8781,lon:-87.6298},"Des Moines":{lat:41.5868,lon:-93.6250},
+  "New York":{lat:40.7128,lon:-74.0060},"Jefferson":{lat:43.005558,lon:-88.807327},
+  "Seattle":{lat:47.6062,lon:-122.3321},"Atlanta":{lat:33.7490,lon:-84.3880},
+  "Dallas":{lat:32.7767,lon:-96.7970},"Memphis":{lat:35.1495,lon:-90.0490},"St. Louis":{lat:38.6270,lon:-90.1994},"Evansville":{lat:37.9748,lon:-87.5558},"Rockford":{lat:42.2711,lon:-89.0940},"Cedar Rapids":{lat:41.9779,lon:-91.6656},"Paducah":{lat:37.0834,lon:-88.6001},"Milwaukee":{lat:43.0389,lon:-87.9065},"Louisville":{lat:38.2527,lon:-85.7585},"Kansas City":{lat:39.0997,lon:-94.5786},"Jonesboro":{lat:35.8423,lon:-90.7043},"Harrisonville":{lat:38.6550,lon:-94.3491},"Nashville":{lat:36.1627,lon:-86.7816}
+};
+var EXTREME=["Flood","Flash Flood","Hail","Hurricane","Tornado","Severe Thunderstorm","Blizzard","Winter Storm","Ice Storm","High Wind","Tropical Storm"];
+
+async function connectApp(){
+  if(typeof Web3==='undefined'){alert('Web3.js is still loading. Please wait a few seconds and try again.');return;}
+  var rpc=document.getElementById('rpc-in').value.trim();
+  var addr=document.getElementById('addr-in').value.trim();
+  if(!addr){alert('Please paste your deployed contract address.');return;}
+  try{
+    web3=new Web3(new Web3.providers.HttpProvider(rpc));
+    accounts=await web3.eth.getAccounts();
+    if(!accounts||!accounts.length) throw new Error('No accounts found. Is Remix VM running?');
+    contract=new web3.eth.Contract(ABI,addr);
+    var b=document.getElementById('cbadge');
+    b.textContent=accounts[0].slice(0,6)+'...'+accounts[0].slice(-4)+' ('+accounts.length+' accts)';
+    b.className='conn-badge ok';
+    document.getElementById('notice').style.display='none';
+    p3log('<span class="lok">✓ Connected — '+accounts.length+' accounts loaded</span>');
+    p3log('<span class="lok">✓ Contract: '+addr.slice(0,12)+'...'+addr.slice(-6)+'</span>');
+    p3log('<span style="color:#94a3b8;">✓ Account[0] = Insurance Provider</span>');
+  }catch(e){alert('Connection failed:\n'+e.message+'\n\nMake sure Remix IDE is open with Remix VM selected.');}
+}
+
+function need(){if(!contract){alert('Please connect first.');return false;}return true;}
+function acc(i){if(!accounts[i])throw new Error('Account['+i+'] not found');return accounts[i];}
+
+function viewTerms(){if(!need())return;document.getElementById('terms-out').style.display='block';}
+
+async function purchasePolicy(){
+  if(!need())return;
+  var name=document.getElementById('p-name').value.trim();
+  var flt=document.getElementById('p-flight').value.trim();
+  var date=document.getElementById('p-date').value;
+  var dep=document.getElementById('p-dep').value.trim();
+  var dest=document.getElementById('p-dest').value.trim();
+  var idx=parseInt(document.getElementById('p-acc').value);
+  if(!name||!flt||!date||!dep||!dest){alert('Please fill in all fields.');return;}
+  var log=document.getElementById('plog'); log.style.display='block'; log.innerHTML='';
+  function L(c,m){log.innerHTML+='<div class="'+c+'">'+m+'</div>';log.scrollTop=9999;}
+  try{
+    L('','<span style="color:#94a3b8;">→ Account['+idx+']: '+acc(idx).slice(0,12)+'...</span>');
+    L('','<span style="color:#94a3b8;">→ Sending 0.01 ETH premium...</span>');
+    var r=await contract.methods.purchase_policy(name,flt,date,dep,dest).send({from:acc(idx),value:PREMIUM,gas:300000});
+    L('lok','✓ Policy purchased successfully!');
+    L('lok','✓ TX: '+r.transactionHash.slice(0,28)+'...');
+    L('','<span style="color:#94a3b8;">→ 0.01 ETH premium forwarded to Insurance Provider</span>');
+  }catch(e){L('lerr','✗ '+e.message);}
+}
+
+async function viewMyPolicy(){
+  if(!need())return;
+  var idx=parseInt(document.getElementById('vp-acc').value);
+  var out=document.getElementById('my-policy'); out.innerHTML='<span style="color:#94a3b8;">Loading...</span>';
+  try{
+    var p=await contract.methods.view_purchased_policy().call({from:acc(idx)});
+    var bc=p.status==='claimed'?'bc':'bp';
+    out.innerHTML='<div class="policy-card">'
+      +'<div class="prow"><span class="pkey">Name</span><span class="pval">'+p.passengerName+'</span></div>'
+      +'<div class="prow"><span class="pkey">Address</span><span class="pval">'+p.passengerAddress.slice(0,14)+'...'+p.passengerAddress.slice(-4)+'</span></div>'
+      +'<div class="prow"><span class="pkey">Flight</span><span class="pval">'+p.flightNumber+'</span></div>'
+      +'<div class="prow"><span class="pkey">Date</span><span class="pval">'+p.flightDate+'</span></div>'
+      +'<div class="prow"><span class="pkey">Departure</span><span class="pval">'+p.departureCity+'</span></div>'
+      +'<div class="prow"><span class="pkey">Destination</span><span class="pval">'+p.destinationCity+'</span></div>'
+      +'<div class="prow"><span class="pkey">Status</span><span class="pval"><span class="badge '+bc+'">'+p.status+'</span></span></div>'
+      +'</div>';
+  }catch(e){out.innerHTML='<span style="color:#dc2626;font-size:13px;">✗ '+e.message+'</span>';}
+}
+
+async function viewMyBalance(){
+  if(!need())return;
+  var idx=parseInt(document.getElementById('vp-acc').value);
+  var out=document.getElementById('my-balance');
+  try{
+    // Use eth.getBalance directly instead of contract view_balance
+    var address=acc(idx);
+    var b=await web3.eth.getBalance(address);
+    var eth=parseFloat(web3.utils.fromWei(b.toString(),'ether')).toFixed(4);
+    out.innerHTML='<div class="policy-card"><div class="bal-big">'+eth+' ETH</div><div class="bal-sub">'+b.toString()+' wei — Account['+idx+'] balance</div></div>';
+  }catch(e){out.innerHTML='<span style="color:#dc2626;font-size:13px;">✗ '+e.message+'</span>';}
+}
+
+async function loadAll(){
+  if(!need())return;
+  var tb=document.getElementById('all-tb');
+  tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:16px;color:#94a3b8;">Loading...</td></tr>';
+  try{
+    var p=await contract.methods.view_all_policies().call({from:accounts[0]});
+    if(!p.names.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No policies found</td></tr>';return;}
+    tb.innerHTML=p.names.map(function(n,i){
+      var bc=p.statuses[i]==='claimed'?'bc':'bp';
+      var a=p.addresses[i];
+      return '<tr><td>'+(i+1)+'</td><td><strong>'+n+'</strong></td>'
+        +'<td style="font-family:monospace;font-size:10px;color:#3b82f6;cursor:pointer;text-decoration:underline;" onclick="document.getElementById(\'pay-addr\').value=\''+a+'\';" title="Click to copy">'+a+'</td>'
+        +'<td>'+p.flightNumbers[i]+'</td><td>'+p.flightDates[i]+'</td>'
+        +'<td>'+p.departureCities[i]+'</td><td>'+p.destinationCities[i]+'</td>'
+        +'<td><span class="badge '+bc+'">'+p.statuses[i]+'</span></td></tr>';
+    }).join('');
+  }catch(e){tb.innerHTML='<tr><td colspan="8" style="color:#dc2626;font-size:12px;padding:12px;">✗ '+e.message+'</td></tr>';}
+}
+
+async function payManual(){
+  if(!need())return;
+  var addr=document.getElementById('pay-addr').value.trim();
+  if(!addr){alert('Enter passenger address.');return;}
+  var log=document.getElementById('paylog'); log.style.display='block'; log.innerHTML='';
+  function L(c,m){log.innerHTML+='<div class="'+c+'">'+m+'</div>';log.scrollTop=9999;}
+  try{
+    L('','<span style="color:#94a3b8;">→ Paying 0.02 ETH to '+addr.slice(0,14)+'...</span>');
+    var r=await contract.methods.pay_indemnity(addr).send({from:accounts[0],value:INDEMNITY,gas:200000});
+    L('lok','✓ Indemnity paid! TX: '+r.transactionHash.slice(0,28)+'...');
+    L('','<span style="color:#94a3b8;">→ Status updated to: claimed</span>');
+  }catch(e){L('lerr','✗ '+e.message);}
+}
+
+function p3log(m){var el=document.getElementById('p3log');el.innerHTML+='<div>'+m+'</div>';el.scrollTop=9999;}
+function pstep(n,c){var el=document.getElementById('pn'+n);if(el)el.style.background=c==='done'?'#10b981':c==='active'?'#f59e0b':'#3b82f6';}
+
+async function checkWeather(city){
+  var c=CITIES[city];
+  if(!c)return{found:false,event:'City not in map',severity:'-'};
+  try{
+    var r=await fetch('https://api.weather.gov/alerts/active?point='+c.lat+','+c.lon,{headers:{'User-Agent':'FlightInsuranceDApp/1.0'}});
+    if(!r.ok)return{found:false,event:'API '+r.status,severity:'-'};
+    var d=await r.json(); var alerts=d.features||[];
+    for(var i=0;i<alerts.length;i++){
+      var ev=alerts[i].properties.event||''; var sv=alerts[i].properties.severity||'';
+      var isEx=EXTREME.some(function(k){return ev.includes(k);});
+      if(isEx||sv==='Extreme'||sv==='Severe')return{found:true,event:ev,severity:sv};
+    }
+    return{found:false,event:alerts.length+' alert(s), none severe',severity:'-'};
+  }catch(e){return{found:false,event:'Fetch error: '+e.message,severity:'-'};}
+}
+
+async function runPhase3(){
+  if(!need())return;
+  var btn=document.getElementById('run-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Running...';
+  document.getElementById('p3log').innerHTML='';
+  document.getElementById('p3-res').style.display='none';
+  for(var i=1;i<=6;i++)pstep(i,'');
+
+  p3log('<span class="lhi">=== Phase III: Fully Automated Flight Insurance ===</span>');
+  try{
+    pstep(1,'active');
+    p3log('<span style="color:#94a3b8;">--- Step 1: Reading policies ---</span>');
+    var all=await contract.methods.view_all_policies().call({from:accounts[0]});
+    var total=all.names.length;
+    p3log('<span class="lok">✓ Found '+total+' policies</span>');
+    pstep(1,'done');
+    if(!total){p3log('<span class="lwarn">No policies found. Purchase policies first.</span>');btn.disabled=false;btn.innerHTML='▶ Run Automated Verification';return;}
+
+    pstep(2,'active'); pstep(3,'active');
+    p3log('<span style="color:#94a3b8;">--- Step 2-5: Checking live weather.gov API ---</span>');
+    var results=[];
+    for(var i=0;i<total;i++){
+      var name=all.names[i],addr=all.addresses[i],city=all.departureCities[i],
+          date=all.flightDates[i],status=all.statuses[i],flt=all.flightNumbers[i];
+      p3log('&nbsp;');
+      p3log('<span class="lhi">Policy '+(i+1)+': '+name+' | '+flt+' | '+date+' | '+city+' | '+status+'</span>');
+      if(status==='claimed'){
+        p3log('<span class="lwarn">  → Already claimed. Skipping.</span>');
+        results.push({name,city,date,event:'Already claimed',severity:'-',action:'Skipped',paid:false});continue;
+      }
+      p3log('<span style="color:#94a3b8;">  → Calling weather.gov for '+city+'...</span>');
+      var w=await checkWeather(city);
+      p3log('<span style="color:#94a3b8;">  → '+w.event+' | Severity: '+w.severity+'</span>');
+      pstep(4,'active');
+      if(w.found){
+        p3log('<span class="lok">  → EXTREME WEATHER DETECTED: '+w.event+'</span>');
+        pstep(5,'active');
+        p3log('<span class="lok">  → AUTO-PAYING 0.02 ETH to '+name+'...</span>');
+        try{
+          var tx=await contract.methods.pay_indemnity(addr).send({from:accounts[0],value:INDEMNITY,gas:200000});
+          p3log('<span class="lok">  → SUCCESS! TX: '+tx.transactionHash.slice(0,30)+'...</span>');
+          p3log('<span class="lok">  → Status → claimed</span>');
+          results.push({name,city,date,event:w.event,severity:w.severity,action:'PAID 0.02 ETH',paid:true});
+          pstep(5,'done');
+        }catch(pe){p3log('<span class="lerr">  → Error: '+pe.message+'</span>');results.push({name,city,date,event:w.event,severity:w.severity,action:'Payment failed',paid:false});}
+      }else{
+        p3log('<span style="color:#94a3b8;">  → No covered condition. No payout.</span>');
+        results.push({name,city,date,event:w.event,severity:w.severity,action:'No payout',paid:false});
+      }
+    }
+    pstep(2,'done');pstep(3,'done');pstep(4,'done');pstep(6,'active');
+    p3log('&nbsp;');
+    p3log('<span class="lhi">--- Final Policy Statuses ---</span>');
+    var upd=await contract.methods.view_all_policies().call({from:accounts[0]});
+    for(var i=0;i<upd.names.length;i++){
+      var sc=upd.statuses[i]==='claimed'?'lok':'lwarn';
+      p3log('<span style="color:#94a3b8;">'+upd.names[i]+' | '+upd.departureCities[i]+' | '+upd.flightDates[i]+' | <span class="'+sc+'">'+upd.statuses[i]+'</span></span>');
+    }
+    p3log('&nbsp;');
+    p3log('<span class="lhi">=== Verification Complete ===</span>');
+    pstep(6,'done');
+    document.getElementById('p3-tb').innerHTML=results.map(function(r,i){
+      var at=r.paid?'<span class="atag ar"> '+r.event+'</span>':'<span class="atag am">'+r.event+'</span>';
+      var ac=r.paid?'<span class="atag ag">✓ Paid 0.02 ETH</span>':'<span class="atag am">'+r.action+'</span>';
+      return '<tr><td>'+(i+1)+'</td><td><strong>'+r.name+'</strong></td><td>'+r.city+'</td><td>'+r.date+'</td><td>'+at+'</td><td style="font-size:11px;color:#64748b;">'+r.severity+'</td><td>'+ac+'</td></tr>';
+    }).join('');
+    document.getElementById('p3-res').style.display='block';
+  }catch(e){p3log('<span class="lerr">✗ '+e.message+'</span>');}
+  btn.disabled=false;btn.innerHTML='▶ Run Automated Verification';
+}
+
+function switchTab(el,name){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.10.0/web3.min.js"></script>
+</body>
+</html>
